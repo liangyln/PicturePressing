@@ -1,0 +1,12 @@
+{
+  "name": "picture-pressing",
+  "version": "1.0.0",
+  "description": "图片批量压缩（Node 界面 + Python 处理）",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}

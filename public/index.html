@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>图片压缩</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>图片压缩</h1>
+     
+    </header>
+
+    <section class="panel">
+      <h2>1. 路径设置</h2>
+      <label class="field">
+        <span>输入路径（要处理的图片文件夹）</span>
+        <div class="path-row">
+          <input type="text" id="inputPath" placeholder="可粘贴路径，如 E:\转型利用" spellcheck="false" />
+          <button type="button" class="btn-secondary" id="btnPickInput">选择文件夹</button>
+        </div>
+        <span class="field-hint">支持从资源管理器复制路径后粘贴，或点击按钮在目录树中选择</span>
+      </label>
+      <label class="field">
+        <span>输出路径（压缩后保存位置）</span>
+        <div class="path-row">
+          <input type="text" id="outputPath" placeholder="可粘贴路径，如 E:\转型利用\压缩后" spellcheck="false" />
+          <button type="button" class="btn-secondary" id="btnPickOutput">选择文件夹</button>
+        </div>
+        <span class="field-hint">未勾选「覆盖原文件」时必填</span>
+      </label>
+      <div class="checks">
+        <label><input type="checkbox" id="includeSubfolders" /> 包含所有子文件夹</label>
+        <label><input type="checkbox" id="overwriteOriginal" /> 覆盖原文件（请注意备份原始文件）</label>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>2. 命名规则</h2>
+      <label class="field inline">
+        <input type="checkbox" id="keepOriginalName" checked />
+        <span>保持原来名字</span>
+      </label>
+      <div class="row">
+        <label class="field">
+          <span>前缀</span>
+          <input type="text" id="prefix" placeholder="可选" />
+        </label>
+        <label class="field">
+          <span>后缀</span>
+          <input type="text" id="suffix" placeholder="可选" />
+        </label>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>3. 输出格式与压缩</h2>
+      <label class="field">
+        <span>编码器</span>
+        <select id="encoder">
+          <option value="mozjpeg">MozJPEG — 输出 .jpg（压缩比最优）</option>
+          <option value="webp">WebP — 输出 .webp（兼容性好）</option>
+          <option value="avif">AVIF — 输出 .avif（体积最小）</option>
+          <option value="pngquant">pngquant — 输出 .png（无损压缩）</option>
+        </select>
+        <span class="field-hint">编码器决定压缩算法与输出文件格式</span>
+      </label>
+      <label class="field">
+        <span>压缩质量 <strong id="qualityVal">85</strong>（1–100，越小文件越小）</span>
+        <input type="range" id="quality" min="1" max="100" value="85" />
+        <span class="field-hint" id="qualityHint">仅 JPEG/WebP/AVIF 编码器有效，pngquant 自动选择最佳质量</span>
+      </label>
+      <label class="field">
+        <span>尺寸比例 <strong id="scaleVal">100</strong>%（100 为不缩放）</span>
+        <input type="range" id="scalePercent" min="10" max="100" value="100" />
+      </label>
+      <div class="preview-row">
+        <button type="button" id="btnPreview" class="btn-outline">🔍 预览效果</button>
+        <span class="preview-hint">选择参数后，点击预览对比原始图片与压缩效果</span>
+      </div>
+    </section>
+
+    <div class="actions">
+      <button type="button" id="btnStart" class="primary">开始压缩</button>
+    </div>
+
+    <section class="panel log-panel" id="logPanel" hidden>
+      <h2>进度</h2>
+      <div class="progress-bar"><div id="progressFill"></div></div>
+      <p id="progressText"></p>
+      <pre id="log"></pre>
+    </section>
+  </div>
+
+  <div id="dirModal" class="modal" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-panel" role="dialog" aria-labelledby="dirModalTitle">
+      <header class="modal-header">
+        <h3 id="dirModalTitle">选择文件夹</h3>
+        <button type="button" class="modal-close" data-close aria-label="关闭">&times;</button>
+      </header>
+      <nav class="breadcrumb" id="dirBreadcrumb"></nav>
+      <div class="dir-tree-wrap">
+        <ul class="dir-tree" id="dirTree"></ul>
+      </div>
+      <footer class="modal-footer">
+        <span class="modal-current" id="dirCurrentPath"></span>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" data-close>取消</button>
+          <button type="button" class="btn-primary" id="dirConfirm" disabled>确定</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- 预览弹窗 -->
+  <div id="previewModal" class="modal preview-modal" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-panel preview-panel" role="dialog" aria-labelledby="previewTitle">
+      <header class="modal-header">
+        <h3 id="previewTitle">预览对比</h3>
+        <button type="button" class="modal-close" data-close aria-label="关闭">&times;</button>
+      </header>
+      <div class="preview-body">
+        <div class="preview-compare">
+          <div class="preview-side">
+            <h4>原始图片</h4>
+            <div class="preview-img-wrap">
+              <img id="previewOriginalImg" alt="原始图片" />
+            </div>
+            <p class="preview-info" id="previewOriginalInfo"></p>
+          </div>
+          <div class="preview-side">
+            <h4>压缩预览</h4>
+            <div class="preview-img-wrap">
+              <img id="previewCompressedImg" alt="压缩预览" />
+            </div>
+            <p class="preview-info" id="previewCompressedInfo"></p>
+          </div>
+        </div>
+        <div class="preview-summary" id="previewSummary" hidden>
+          <p>压缩比：<strong id="previewRatio"></strong></p>
+        </div>
+        <div class="preview-loading" id="previewLoading" hidden>
+          <span>正在生成预览…</span>
+        </div>
+        <div class="preview-error" id="previewError" hidden></div>
+      </div>
+      <footer class="modal-footer">
+        <span class="preview-current-file" id="previewCurrentFile">—</span>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" data-close>关闭</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script src="dir-picker.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

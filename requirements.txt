@@ -1,0 +1,3 @@
+Pillow>=10.0.0
+customtkinter>=5.0.0
+pillow-avif-plugin>=1.4  # AVIF 编码支持（可选，无系统 codec 时自动禁用）
