@@ -4,7 +4,7 @@
 
 ## 快速开始（绿色免安装版）
 
-1. 解压 `PicturePressing-Windows.zip` 到任意文件夹
+1. 解压 `PicturePressing-Windows.zip` 到任意文件夹(根据widonws的版本选择PicturePressing-Windows 10-11或PicturePressing-Windows 7)
 2. 双击 `PicturePressing.exe`（或 `Start.bat`）
 3. 软件窗口自动打开，无需安装任何运行时
 
